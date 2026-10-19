@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Crown Orange, Bulgaria
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Width of the line. Default is 100.
+line_width: 160
+# Number of columns for indenting. Default is 2.
+tab_size: 2

@@ -1,0 +1,89 @@
+# SPDX-FileCopyrightText: 2026 Crown Orange, Bulgaria
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Lets the workflow be started by hand from the web UI (Actions -> Run
+  # workflow). Some CI platforms only show that button for a workflow present
+  # on the default branch, so it appears once this is merged.
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Every job here only reads the repository; a job that needs more declares it
+# for itself.
+permissions:
+  contents: read
+
+# Compiler floor: gcc >= 14 / clang >= 19 with libstdc++ >= 14, the toolchain
+# the nonbl libraries need for C++23. clang is sourced from apt.llvm.org and
+# paired with g++-14 so it links libstdc++ 14.
+jobs:
+  build-and-test:
+    name: Build & test (${{ matrix.compiler }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc
+            cc: gcc-14
+            cxx: g++-14
+            packages: gcc-14 g++-14
+          - compiler: clang
+            cc: clang-19
+            cxx: clang++-19
+            packages: clang-19 g++-14
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+    # A repository with no CMake project has nothing to build: every step after
+    # the checkout runs only once a top-level CMakeLists.txt exists. The check
+    # sits on the steps because hashFiles() reads the checked-out tree, which a
+    # job-level condition is evaluated before.
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Add LLVM apt repository (clang)
+        if: hashFiles('CMakeLists.txt') != '' && matrix.compiler == 'clang'
+        run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key \
+            | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
+          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" \
+            | sudo tee /etc/apt/sources.list.d/llvm.list
+
+      - name: Install toolchain
+        if: hashFiles('CMakeLists.txt') != ''
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build ${{ matrix.packages }}
+
+      - name: Configure
+        if: hashFiles('CMakeLists.txt') != ''
+        run: >
+          cmake -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+
+      - name: Build
+        if: hashFiles('CMakeLists.txt') != ''
+        run: cmake --build build -j$(nproc)
+
+      - name: Test
+        if: hashFiles('CMakeLists.txt') != ''
+        run: ctest --test-dir build -j$(nproc) --output-on-failure
+
+  reuse:
+    name: REUSE compliance
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: fsfe/reuse-action@bb774aa972c2a89ff34781233d275075cbddf542 # v5

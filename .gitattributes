@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Crown Orange, Bulgaria
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Normalise line endings for text files in the repository.
+* text=auto
+
+# Golden payload fixtures are exact bytes — never apply EOL conversion.
+test/data/*.bin binary
+
+# Keep development-only files out of `git archive` release tarballs.
+.gitattributes  export-ignore
+.gitignore      export-ignore
+.clang-format   export-ignore
+.cmake-format   export-ignore
+.github/        export-ignore

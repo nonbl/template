@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Crown Orange, Bulgaria
+#
+# SPDX-License-Identifier: CC0-1.0
+
+version = 1
+
+# Test-vector fixtures (binary blobs and hex dumps) that can't carry an SPDX
+# header. Annotated centrally here instead of with one .license sidecar each.
+[[annotations]]
+path = "test/data/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Crown Orange, Bulgaria"
+SPDX-License-Identifier = "CC0-1.0"

@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Crown Orange, Bulgaria
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# A pinned action is fixed at the commit its SHA names, so it stays there until
+# something proposes a newer one. Dependabot is that something: it opens a pull
+# request when an action publishes a release, rewriting the SHA and the version
+# comment together, and CI decides whether the new one is good.
+#
+# The C++ dependencies are fetched by CMake's FetchContent, which Dependabot
+# does not read; those are bumped by hand.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+    # One pull request for all of them: the actions move together and each
+    # arriving on its own is noise a reviewer learns to skip.
+    groups:
+      actions:
+        patterns: ["*"]

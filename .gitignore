@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Crown Orange, Bulgaria
+# SPDX-License-Identifier: CC0-1.0
+
+.project
+CMakeLists.txt.user
+build*/
+.cache
+*.autosave
+.qtcreator
+*pycache*
+*.pyc
+compile_commands.json
+.vscode/
+.idea/
+.DS_Store
+CMakeUserPresets.json
